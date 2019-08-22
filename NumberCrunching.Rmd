@@ -1,0 +1,92 @@
+---
+title: "Processing raw maple data"
+author: "Erika Barthelmess"
+date: "8/22/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+During summmer 2019, we built out a new data entry portal on the Nature Up North website to allow easier submission of maple data.  We would like to process the historical data into a csv that can be easily batch uploaded to the website so that folks have access to all of the data.  That's what this code is for.
+
+## Set up the workspace
+
+```{r}
+rm(list = ls())
+library(ggplot2)
+library(tidyverse)
+```
+
+## Now pull in the data
+I am taking data from the excel file called "all_maple_monitoring_through_fall2017.xlsx" which is found in Nature Up North/Citizen Science/MapleMonitoring/Data on dropbox.
+
+```{r}
+library(readr)
+Trees <- read_csv("FallTrees.csv")
+```
+There are 1502 observations of 24 variables.
+
+## Now do some data cleanup.
+
+### Begin by getting rid of the spring data observations
+```{r}
+Trees<-select(Trees, -starts_with("Leaf"))
+Trees<-select(Trees, -Fruit)
+```
+
+### Continue by making sure that levels of factor variables are correct.
+
+Create factor variables
+```{r}
+Trees$Season<-as.factor(Trees$Season)
+Trees$Species<-as.factor(Trees$Species)
+Trees$Urbanization<-as.factor(Trees$Urbanization)
+Trees$Habitat<-as.factor(Trees$Habitat)
+Trees$Shading<-as.factor(Trees$Shading)
+```
+###Now check for levels of each factor 
+Make sure there are not multiple spellings of factor levels, etc. Repair any problems as they arise.
+
+```{r}
+levels(Trees$Season)
+```
+Season looks good.
+```{r}
+levels(Trees$Species)
+```
+
+Species also looks good.
+```{r}
+levels(Trees$Urbanization)
+```
+Looks good.
+```{r}
+levels(Trees$Habitat)
+```
+Habitat also looks good.
+```{r}
+levels(Trees$Shading)
+```
+Looks good.  None of the factor variables have incorrect levels assigned.
+
+
+
+###Now check for errors in numeric variables
+####Examine latitude and longitude
+Latitude: First look at the ranges of values
+```{r}
+summary(Trees$Latitude)
+```
+All the latitude values appear to be ok, though some may be wrong.
+
+
+Longitude: First look at the ranges of values
+
+```{r}
+summary(Trees$Longitude)
+```
+All longitude values are negative.  Some are unusual, (e.g. -90, -7) but we're not going to change any data at this point.
+####
