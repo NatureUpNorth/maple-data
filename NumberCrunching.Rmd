@@ -80,6 +80,12 @@ Latitude: First look at the ranges of values
 ```{r}
 summary(Trees$Latitude)
 ```
+Let's make a plot so see how many really big numbers there are
+```{r}
+ggplot(Trees, aes(Latitude))+
+  geom_histogram()
+```
+
 All the latitude values appear to be ok, though some may be wrong.
 
 
@@ -88,5 +94,60 @@ Longitude: First look at the ranges of values
 ```{r}
 summary(Trees$Longitude)
 ```
+Let's make a plot so see how many really big numbers there are
+```{r}
+ggplot(Trees, aes(Longitude))+
+  geom_histogram()
+```
 All longitude values are negative.  Some are unusual, (e.g. -90, -7) but we're not going to change any data at this point.
-####
+
+####Other numeric variables
+Can now move on to next numeric variable, circumference.
+Look at range of tree circumferences.
+```{r}
+summary(Trees$Circumference)
+```
+Let's make a plot so see how many really big numbers there are (e.g. 241.00!)
+```{r}
+ggplot(Trees, aes(Circumference))+
+  geom_histogram()
+```
+Ok.  Numeric variables look good.  
+
+
+###Now populate other columns
+####Serial
+Add a unique ID to each row of data
+```{r}
+Trees$Serial<-(1:1502)
+```
+####Julian
+Now see if I can add a julian date.  Note that some of the dates in the date fields are March, rather than a fall date.  I think these are the dates the data were contributed rather than the dates the observations were made.  I am not changing them.  The data are the data.
+
+Begin by making the Date column into a date class with Lubridate
+
+```{r}
+library(lubridate)
+Trees$Date<-mdy(Trees$Date)
+```
+And now get the Julian date, also using lubridate
+```{r}
+Trees$Julian<-yday(Trees$Date)
+```
+## Final Steps - Concatenate and export file
+We need a unique ID per tree, but we don't want each observation of the same tree to count as a different tree.  Thus, we are concatenating a bunch of variables into a string that should be unique to each tree, but not each observation, so that we can identify all of the observations that appear to be from the same tree.
+
+To do so, we will concatenate the columns Tree ID, Species, Latitude, Longitude, Urbanization, Habitat, Shading and Circumference.  These will be used to determine which rows are unique trees.
+
+```{r}
+Trees$UniqueID<-paste(Trees$`Tree ID`, Trees$Species, Trees$Latitude, Trees$Longitude, Trees$Urbanization, Trees$Habitat, Trees$Shading, Trees$Circumference, sep = "_")
+```
+Now write the file to a new csv
+```{r}
+write.csv(Trees, "FallTreesProcessed.csv")
+```
+
+
+
+
+
