@@ -21,31 +21,35 @@ library(tidyverse)
 ```
 
 ## Now pull in the data
-I am taking data from the excel file called "all_maple_monitoring_through_fall2017.xlsx" which is found in Nature Up North/Citizen Science/MapleMonitoring/Data on dropbox.
+I am taking data from the csv file called "all_maple_monitoring_through_fall2017" which is found in Nature Up North/Citizen Science/MapleMonitoring/Data on dropbox.
 
 ```{r}
 library(readr)
-Trees <- read_csv("FallTrees.csv")
+Trees <- read_csv("all_maple_monitoring_through_fall2017.csv", 
+    col_types = cols(Circumference = col_number(), 
+        Date = col_date(format = "%m/%d/%y"), 
+        Julian =col_number(),
+        Flowering = col_character(), Latitude = col_number(), 
+        LeafBud = col_character(), LeafUnfurled = col_character(), 
+        Longitude = col_number(), Observer = col_character(), 
+        `Tree ID` = col_character(), Username = col_character()))
+
+#for some reason when I just did a straight read_csv, the columns indicated in the col_types section didn't get pulled in with the rest of the data...this seems to fix it.
 ```
-There are 1502 observations of 24 variables.
+There are 2108 observations of 24 variables.
 
 ## Now do some data cleanup.
-
-### Begin by getting rid of the spring data observations
+###Get rid of the extra date column
 ```{r}
-Trees<-select(Trees, -starts_with("Leaf"))
-Trees<-select(Trees, -Fruit)
+Trees$Date_1<-NULL
 ```
-
-### Continue by making sure that levels of factor variables are correct.
+### Make sure that levels of factor variables are correct.
 
 Create factor variables
 ```{r}
-Trees$Season<-as.factor(Trees$Season)
-Trees$Species<-as.factor(Trees$Species)
-Trees$Urbanization<-as.factor(Trees$Urbanization)
-Trees$Habitat<-as.factor(Trees$Habitat)
-Trees$Shading<-as.factor(Trees$Shading)
+vars<-c("Season", "Species", "Urbanization", "Habitat", "Shading", "LeafColor", "LeafDropping", "Fruit", "LeafBud", "LeafUnfurled", "Flowering")
+
+Trees[vars]<-lapply(Trees[vars],as.factor)
 ```
 ###Now check for levels of each factor 
 Make sure there are not multiple spellings of factor levels, etc. Repair any problems as they arise.
@@ -70,11 +74,31 @@ Habitat also looks good.
 ```{r}
 levels(Trees$Shading)
 ```
+
+```{r}
+levels(Trees$LeafColor)
+```
+```{r}
+levels(Trees$LeafDropping)
+```
+```{r}
+levels(Trees$Fruit)
+```
+```{r}
+levels(Trees$LeafBud)
+```
+```{r}
+levels(Trees$LeafUnfurled)
+```
+```{r}
+levels(Trees$Flowering)
+```
+
+
 Looks good.  None of the factor variables have incorrect levels assigned.
 
-
-
 ###Now check for errors in numeric variables
+
 ####Examine latitude and longitude
 Latitude: First look at the ranges of values
 ```{r}
@@ -119,18 +143,12 @@ Ok.  Numeric variables look good.
 ####Serial
 Add a unique ID to each row of data
 ```{r}
-Trees$Serial<-(1:1502)
+Trees$Serial<-(1:2108)
 ```
 ####Julian
 Now see if I can add a julian date.  Note that some of the dates in the date fields are March, rather than a fall date.  I think these are the dates the data were contributed rather than the dates the observations were made.  I am not changing them.  The data are the data.
 
-Begin by making the Date column into a date class with Lubridate
-
-```{r}
-library(lubridate)
-Trees$Date<-mdy(Trees$Date)
-```
-And now get the Julian date, also using lubridate
+And now get the Julian date (you'll need the lubridate package if you don't bring them in as dates)
 ```{r}
 Trees$Julian<-yday(Trees$Date)
 ```
@@ -140,11 +158,11 @@ We need a unique ID per tree, but we don't want each observation of the same tre
 To do so, we will concatenate the columns Tree ID, Species, Latitude, Longitude, Urbanization, Habitat, Shading and Circumference.  These will be used to determine which rows are unique trees.
 
 ```{r}
-Trees$UniqueID<-paste(Trees$`Tree ID`, Trees$Species, Trees$Latitude, Trees$Longitude, Trees$Urbanization, Trees$Habitat, Trees$Shading, Trees$Circumference, sep = "_")
+Trees$UniqueID<-paste(Trees$Observer,Trees$`Tree ID`, Trees$Species, Trees$Latitude, Trees$Longitude, Trees$Urbanization, Trees$Habitat, Trees$Shading, Trees$Circumference, sep = "_")
 ```
 Now write the file to a new csv
 ```{r}
-write.csv(Trees, "FallTreesProcessed.csv")
+write.csv(Trees, "TreesProcessed.csv")
 ```
 
 
