@@ -1,0 +1,80 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+##Introduction
+Now that we've "cleaned" the data (that is, make sure all factors are entered correctly, etc.) we need to try and determine which trees are the same for the purposes of this project.
+
+Perhaps we can filter by each unique id 
+
+Here's the workflow:
+
+Make a new column called "lat_long" and select trees with the same lat long.  Then look at tree ID.  If it is the same, assign the tree to the next (and same) tree number.
+
+Let's try with the first 200 trees to see if it works
+
+##Prep the workspace and load data
+```{r}
+rm(list = ls())
+library(ggplot2)
+library(tidyverse)
+```
+Load data
+```{r}
+library(readr)
+DF <- read_csv("TreesProcessed.csv", col_types = cols(Circumference = col_number(), 
+    Date = col_date(format = "%Y-%m-%d"),      
+    Flowering = col_character(), Julian = col_integer(), 
+    Latitude = col_number(), LeafBud = col_character(), 
+    LeafUnfurled = col_character(), Longitude = col_number(), 
+    Observer = col_character(), Season = col_factor(levels = c("Fall", 
+         "Spring")), Serial = col_integer(), 
+    `Tree ID` = col_character(), Username = col_character()))
+```
+Now get rid of X1 column
+```{r}
+DF<-DF[,-1]
+```
+Now get a subset to work with
+```{r}
+sub<-DF[500:700,]
+```
+##Ok, now practice on this DF
+```{r}
+sub$LatLong<-sub$Longitude - sub$Latitude
+```
+Now summarize
+```{r}
+summary(sub$LatLong)
+```
+
+How many unique values?
+```{r}
+unique(sub$LatLong)
+```
+Now get that as a list of vars
+```{r}
+Diffs<-unique(sub$LatLong)
+```
+And a counting variable
+```{r}
+Count<-length(Diffs)
+```
+So it looks like we'll loop 80 times
+
+Start by making a new column for tree assignment, TreeAssign
+```{r}
+sub$TreeAssign<-NA
+sub$TreeAssign<-as.integer(sub$TreeAssign)
+```
+Now start the loop:First pass is to assign a tree number to all with the same LatLong and Tree Number
+
+```{r}
+for (i in 1:Count){
+  test<-filter(sub,LatLong == Diffs[i])
+  if (length(test) = 1){}
+}
+```
+
+
